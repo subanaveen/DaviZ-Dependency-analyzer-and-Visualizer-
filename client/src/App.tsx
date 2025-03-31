@@ -9,14 +9,31 @@ import { useState } from "react";
 import { Beliefs, Desires, Intentions } from "@/lib/types";
 import BDIPage from "@/pages/BDIPage";
 
-function Router({ beliefs, desires, intentions }: { 
+function Router({ 
+  beliefs, desires, intentions, 
+  setBeliefs, setDesires, setIntentions 
+}: { 
   beliefs: Beliefs; 
   desires: Desires; 
-  intentions: Intentions 
+  intentions: Intentions;
+  setBeliefs: React.Dispatch<React.SetStateAction<Beliefs>>;
+  setDesires: React.Dispatch<React.SetStateAction<Desires>>;
+  setIntentions: React.Dispatch<React.SetStateAction<Intentions>>;
 }) {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/">
+        {() => (
+          <Home 
+            globalBeliefs={beliefs}
+            globalDesires={desires}
+            globalIntentions={intentions}
+            setGlobalBeliefs={setBeliefs}
+            setGlobalDesires={setDesires}
+            setGlobalIntentions={setIntentions}
+          />
+        )}
+      </Route>
       <Route path="/bdi">
         {() => <BDIPage beliefs={beliefs} desires={desires} intentions={intentions} />}
       </Route>
@@ -34,7 +51,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Layout beliefs={beliefs} desires={desires} intentions={intentions}>
-        <Router beliefs={beliefs} desires={desires} intentions={intentions} />
+        <Router 
+          beliefs={beliefs} 
+          desires={desires} 
+          intentions={intentions} 
+          setBeliefs={setBeliefs}
+          setDesires={setDesires}
+          setIntentions={setIntentions}
+        />
       </Layout>
       <Toaster />
     </QueryClientProvider>

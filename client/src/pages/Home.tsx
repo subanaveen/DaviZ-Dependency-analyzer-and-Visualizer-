@@ -15,8 +15,23 @@ import {
 } from "@/lib/types";
 import { BrainCircuit } from "lucide-react";
 
-// Get the global BDI state from the App component
-export default function Home() {
+interface HomeProps {
+  globalBeliefs: Beliefs;
+  globalDesires: Desires;
+  globalIntentions: Intentions;
+  setGlobalBeliefs: React.Dispatch<React.SetStateAction<Beliefs>>;
+  setGlobalDesires: React.Dispatch<React.SetStateAction<Desires>>;
+  setGlobalIntentions: React.Dispatch<React.SetStateAction<Intentions>>;
+}
+
+export default function Home({
+  globalBeliefs,
+  globalDesires,
+  globalIntentions,
+  setGlobalBeliefs,
+  setGlobalDesires,
+  setGlobalIntentions
+}: HomeProps) {
   const { toast } = useToast();
   const [targetFeature, setTargetFeature] = useState<string>("");
   const [dependencies, setDependencies] = useState<Dependencies>({});
@@ -26,18 +41,14 @@ export default function Home() {
   const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
   const [shouldShowGraph, setShouldShowGraph] = useState(false);
   
-  // Local BDI state
-  const [beliefs, setBeliefs] = useState<Beliefs>({});
-  const [desires, setDesires] = useState<Desires>({});
-  const [intentions, setIntentions] = useState<Intentions>({});
-
+  // Use global BDI state 
   const agent = new RLBDIAgent(
-    beliefs,
-    desires,
-    intentions,
-    setBeliefs,
-    setDesires,
-    setIntentions
+    globalBeliefs,
+    globalDesires,
+    globalIntentions,
+    setGlobalBeliefs,
+    setGlobalDesires,
+    setGlobalIntentions
   );
 
   const handleGenerateDependencies = async (feature: string) => {
@@ -179,9 +190,9 @@ export default function Home() {
   };
 
   // Check if we have BDI data to show the notification
-  const hasBDIData = Object.keys(beliefs).length > 0 || 
-                    Object.keys(desires).length > 0 || 
-                    Object.keys(intentions).length > 0;
+  const hasBDIData = Object.keys(globalBeliefs).length > 0 || 
+                    Object.keys(globalDesires).length > 0 || 
+                    Object.keys(globalIntentions).length > 0;
 
   return (
     <div className="flex flex-col">
