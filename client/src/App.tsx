@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Beliefs, Desires, Intentions, SelectedDependencies } from "@/lib/types";
 import BDIPage from "@/pages/BDIPage";
 import DatasetPage from "@/pages/DatasetPage";
+import OwnDatasetPage from "@/pages/OwnDatasetPage";
 import Landing from "@/pages/Landing";
 import StatisticalAnalysis from "@/pages/StatisticalAnalysis";
 import LandingHeader from "@/components/LandingHeader";
@@ -67,6 +68,9 @@ function App() {
               />
             </Layout>
           )}
+        </Route>
+        <Route path="/own-dataset">
+          {() => <OwnDatasetPage />}
         </Route>
         <Route>
           {() => (
