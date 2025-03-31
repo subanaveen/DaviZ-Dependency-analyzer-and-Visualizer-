@@ -22,6 +22,7 @@ interface HomeProps {
   setGlobalBeliefs: React.Dispatch<React.SetStateAction<Beliefs>>;
   setGlobalDesires: React.Dispatch<React.SetStateAction<Desires>>;
   setGlobalIntentions: React.Dispatch<React.SetStateAction<Intentions>>;
+  setSelectedDependencies: React.Dispatch<React.SetStateAction<SelectedDependencies>>;
 }
 
 export default function Home({
@@ -30,13 +31,14 @@ export default function Home({
   globalIntentions,
   setGlobalBeliefs,
   setGlobalDesires,
-  setGlobalIntentions
+  setGlobalIntentions,
+  setSelectedDependencies
 }: HomeProps) {
   const { toast } = useToast();
   const [targetFeature, setTargetFeature] = useState<string>("");
   const [dependencies, setDependencies] = useState<Dependencies>({});
   const [explanations, setExplanations] = useState<Record<string, Record<string, string>>>({});
-  const [selectedDependencies, setSelectedDependencies] = useState<SelectedDependencies>({});
+  const [localSelectedDependencies, setLocalSelectedDependencies] = useState<SelectedDependencies>({});
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
   const [shouldShowGraph, setShouldShowGraph] = useState(false);
@@ -78,6 +80,12 @@ export default function Home({
         [feature]: data.explanations
       }));
       
+      setLocalSelectedDependencies(prev => ({
+        ...prev,
+        [feature]: []
+      }));
+      
+      // Update global state as well
       setSelectedDependencies(prev => ({
         ...prev,
         [feature]: []
@@ -103,6 +111,12 @@ export default function Home({
   };
 
   const handleSelectDependencies = (feature: string, selected: string[]) => {
+    setLocalSelectedDependencies(prev => ({
+      ...prev,
+      [feature]: selected
+    }));
+    
+    // Update global state as well
     setSelectedDependencies(prev => ({
       ...prev,
       [feature]: selected
@@ -118,10 +132,10 @@ export default function Home({
       });
       
       // Update AI Intentions
-      agent.updateIntentions(feature, selectedDependencies[feature] || []);
+      agent.updateIntentions(feature, localSelectedDependencies[feature] || []);
       
       // Expand dependencies for selected items
-      for (const item of selectedDependencies[feature] || []) {
+      for (const item of localSelectedDependencies[feature] || []) {
         if (!dependencies[item]) {
           const response = await fetch('/api/dependencies', {
             method: 'POST',
@@ -151,6 +165,12 @@ export default function Home({
             [item]: data.explanations
           }));
           
+          setLocalSelectedDependencies(prev => ({
+            ...prev,
+            [item]: []
+          }));
+          
+          // Update global state
           setSelectedDependencies(prev => ({
             ...prev,
             [item]: []
@@ -219,7 +239,7 @@ export default function Home({
             <DependenciesPanel 
               dependencies={dependencies}
               explanations={explanations}
-              selectedDependencies={selectedDependencies}
+              selectedDependencies={localSelectedDependencies}
               expandedNodes={expandedNodes}
               onSelectDependencies={handleSelectDependencies}
               onConfirmAndExpand={handleConfirmAndExpand}
@@ -230,7 +250,7 @@ export default function Home({
         <div className="lg:col-span-1">
           <DependencyGraph 
             dependencies={dependencies}
-            selectedDependencies={selectedDependencies}
+            selectedDependencies={localSelectedDependencies}
             expandedNodes={expandedNodes}
             isGenerating={isGeneratingGraph}
             showGraph={shouldShowGraph}

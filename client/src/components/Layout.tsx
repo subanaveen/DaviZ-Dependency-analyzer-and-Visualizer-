@@ -2,17 +2,18 @@ import React, { ReactNode, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Beliefs, Desires, Intentions } from "@/lib/types";
-import { Moon, Sun, BrainCircuit } from "lucide-react";
+import { Beliefs, Desires, Intentions, SelectedDependencies } from "@/lib/types";
+import { Moon, Sun, BrainCircuit, Database } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
   beliefs: Beliefs;
   desires: Desires;
   intentions: Intentions;
+  selectedDependencies: SelectedDependencies;
 }
 
-export default function Layout({ children, beliefs, desires, intentions }: LayoutProps) {
+export default function Layout({ children, beliefs, desires, intentions, selectedDependencies }: LayoutProps) {
   const [location] = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(false);
   
@@ -56,6 +57,16 @@ export default function Layout({ children, beliefs, desires, intentions }: Layou
                 BDI State
                 {hasBDIData && location !== '/bdi' && (
                   <span className="ml-2 w-2 h-2 bg-green-500 rounded-full"></span>
+                )}
+              </Link>
+              
+              <Link href="/dataset" className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${location === '/dataset' 
+                ? 'bg-purple-100 text-purple-700' 
+                : isDarkMode ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'}`}>
+                <Database className="h-4 w-4 mr-1" />
+                Dataset
+                {Object.keys(selectedDependencies).length > 0 && location !== '/dataset' && (
+                  <span className="ml-2 w-2 h-2 bg-purple-500 rounded-full"></span>
                 )}
               </Link>
             </nav>

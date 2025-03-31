@@ -6,19 +6,22 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Layout from "@/components/Layout";
 import { useState } from "react";
-import { Beliefs, Desires, Intentions } from "@/lib/types";
+import { Beliefs, Desires, Intentions, SelectedDependencies } from "@/lib/types";
 import BDIPage from "@/pages/BDIPage";
+import DatasetPage from "@/pages/DatasetPage";
 
 function Router({ 
-  beliefs, desires, intentions, 
-  setBeliefs, setDesires, setIntentions 
+  beliefs, desires, intentions, selectedDependencies,
+  setBeliefs, setDesires, setIntentions, setSelectedDependencies
 }: { 
   beliefs: Beliefs; 
   desires: Desires; 
   intentions: Intentions;
+  selectedDependencies: SelectedDependencies;
   setBeliefs: React.Dispatch<React.SetStateAction<Beliefs>>;
   setDesires: React.Dispatch<React.SetStateAction<Desires>>;
   setIntentions: React.Dispatch<React.SetStateAction<Intentions>>;
+  setSelectedDependencies: React.Dispatch<React.SetStateAction<SelectedDependencies>>;
 }) {
   return (
     <Switch>
@@ -31,11 +34,22 @@ function Router({
             setGlobalBeliefs={setBeliefs}
             setGlobalDesires={setDesires}
             setGlobalIntentions={setIntentions}
+            setSelectedDependencies={setSelectedDependencies}
           />
         )}
       </Route>
       <Route path="/bdi">
         {() => <BDIPage beliefs={beliefs} desires={desires} intentions={intentions} />}
+      </Route>
+      <Route path="/dataset">
+        {() => (
+          <DatasetPage 
+            beliefs={beliefs} 
+            desires={desires} 
+            intentions={intentions} 
+            selectedDependencies={selectedDependencies} 
+          />
+        )}
       </Route>
       <Route component={NotFound} />
     </Switch>
@@ -47,17 +61,20 @@ function App() {
   const [beliefs, setBeliefs] = useState<Beliefs>({});
   const [desires, setDesires] = useState<Desires>({});
   const [intentions, setIntentions] = useState<Intentions>({});
+  const [selectedDependencies, setSelectedDependencies] = useState<SelectedDependencies>({});
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Layout beliefs={beliefs} desires={desires} intentions={intentions}>
+      <Layout beliefs={beliefs} desires={desires} intentions={intentions} selectedDependencies={selectedDependencies}>
         <Router 
           beliefs={beliefs} 
           desires={desires} 
           intentions={intentions} 
+          selectedDependencies={selectedDependencies}
           setBeliefs={setBeliefs}
           setDesires={setDesires}
           setIntentions={setIntentions}
+          setSelectedDependencies={setSelectedDependencies}
         />
       </Layout>
       <Toaster />
