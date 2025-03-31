@@ -139,6 +139,7 @@ export default function DependencyGraph({
   const svgRef = useRef<SVGSVGElement>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [viewBox, setViewBox] = useState("0 0 1200 600");
+  const [activeNode, setActiveNode] = useState<string | null>(null);
 
   // Zoom controls
   const zoomIn = () => {
@@ -229,7 +230,41 @@ export default function DependencyGraph({
             </Button>
           </div>
           
-          <div className="network-graph h-[600px] w-full bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+          <div className="network-graph h-[600px] w-full bg-slate-50 border border-slate-200 rounded-lg overflow-hidden relative">
+            {/* Node Info Tooltip */}
+            {activeNode && (
+              <div className="absolute top-4 left-4 z-20 bg-white shadow-lg border border-blue-100 rounded-lg p-4 max-w-xs">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-semibold text-blue-700 mb-2">{activeNode}</h3>
+                  <button 
+                    onClick={() => setActiveNode(null)}
+                    className="text-slate-500 hover:text-slate-700 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="border-b border-slate-200 mb-2"></div>
+                
+                {dependencies[activeNode] && (
+                  <div className="text-xs">
+                    {Object.entries(dependencies[activeNode]).map(([category, deps]) => (
+                      <div key={category} className="mb-3">
+                        <p className="text-slate-600 font-medium mb-1">{category}:</p>
+                        <ul className="list-disc pl-4 space-y-1">
+                          {deps.map((dep: string, index: number) => (
+                            <li key={index} className="text-slate-700">{dep}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
             {showGraph ? (
               <svg 
                 ref={svgRef} 
@@ -262,7 +297,12 @@ export default function DependencyGraph({
                   // Different styles based on node type
                   let nodeClass, textClass, shadowOpacity;
                   
-                  if (isRoot) {
+                  if (activeNode === node.id) {
+                    // Active node styling (highest priority)
+                    nodeClass = "fill-purple-200 stroke-purple-600";
+                    textClass = "font-bold fill-purple-900";
+                    shadowOpacity = 0.5;
+                  } else if (isRoot) {
                     nodeClass = "fill-blue-300 stroke-blue-600";
                     textClass = "font-semibold fill-slate-800";
                     shadowOpacity = 0.4;
@@ -281,14 +321,62 @@ export default function DependencyGraph({
                       key={`node-${node.id}`}
                       className="node"
                       transform={`translate(${node.x - 90}, ${node.y - 20})`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setActiveNode(activeNode === node.id ? null : node.id)}
+                      onMouseEnter={(e) => {
+                        // Add highlight effect on hover
+                        const rect = e.currentTarget.querySelector('rect');
+                        if (rect) {
+                          rect.setAttribute('stroke-width', '2.5');
+                          rect.setAttribute('filter', `url(#shadow-highlight-${node.id})`);
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        // Remove highlight effect
+                        const rect = e.currentTarget.querySelector('rect');
+                        if (rect) {
+                          rect.setAttribute('stroke-width', '1.5');
+                          rect.setAttribute('filter', `url(#shadow-${node.id})`);
+                        }
+                      }}
                     >
-                      {/* Drop shadow filter */}
+                      {/* Drop shadow filters - normal and highlight */}
                       <defs>
                         <filter id={`shadow-${node.id}`} x="-20%" y="-20%" width="140%" height="140%">
                           <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity={shadowOpacity} />
                         </filter>
+                        <filter id={`shadow-highlight-${node.id}`} x="-20%" y="-20%" width="140%" height="140%">
+                          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity={shadowOpacity + 0.1} flood-color="#4287f5" />
+                        </filter>
                       </defs>
                       
+                      {activeNode === node.id ? (
+                        // For active node, add a pulse animation
+                        <>
+                          <rect
+                            width="190"
+                            height="46"
+                            x="-5"
+                            y="-3"
+                            rx="8"
+                            ry="8"
+                            className="fill-none stroke-purple-400 opacity-70"
+                            strokeWidth="1"
+                            style={{
+                              animation: 'pulse 2s infinite ease-in-out'
+                            }}
+                          />
+                          <style>
+                            {`
+                              @keyframes pulse {
+                                0% { transform: scale(1); opacity: 0.7; }
+                                50% { transform: scale(1.03); opacity: 0.5; }
+                                100% { transform: scale(1); opacity: 0.7; }
+                              }
+                            `}
+                          </style>
+                        </>
+                      ) : null}
                       <rect
                         width="180"
                         height="40"
@@ -303,6 +391,7 @@ export default function DependencyGraph({
                         y="25"
                         textAnchor="middle"
                         className={`text-sm ${textClass}`}
+                        pointerEvents="none" // Allows clicks to pass through to the parent
                       >
                         {node.id}
                       </text>
