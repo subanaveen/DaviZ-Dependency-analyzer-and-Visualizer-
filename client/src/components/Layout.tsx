@@ -37,7 +37,9 @@ export default function Layout({ children, beliefs, desires, intentions, selecte
       <header className={`border-b ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <span className="text-2xl font-bold text-blue-600">🤖</span>
+            <Link href="/landing">
+              <span className="text-2xl font-bold text-blue-600 cursor-pointer">🤖</span>
+            </Link>
             <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
               AI-Powered Dynamic Dependency Analyzer
             </h1>

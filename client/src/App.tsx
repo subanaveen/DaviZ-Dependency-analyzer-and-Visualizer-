@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,52 +9,9 @@ import { useState } from "react";
 import { Beliefs, Desires, Intentions, SelectedDependencies } from "@/lib/types";
 import BDIPage from "@/pages/BDIPage";
 import DatasetPage from "@/pages/DatasetPage";
-
-function Router({ 
-  beliefs, desires, intentions, selectedDependencies,
-  setBeliefs, setDesires, setIntentions, setSelectedDependencies
-}: { 
-  beliefs: Beliefs; 
-  desires: Desires; 
-  intentions: Intentions;
-  selectedDependencies: SelectedDependencies;
-  setBeliefs: React.Dispatch<React.SetStateAction<Beliefs>>;
-  setDesires: React.Dispatch<React.SetStateAction<Desires>>;
-  setIntentions: React.Dispatch<React.SetStateAction<Intentions>>;
-  setSelectedDependencies: React.Dispatch<React.SetStateAction<SelectedDependencies>>;
-}) {
-  return (
-    <Switch>
-      <Route path="/">
-        {() => (
-          <Home 
-            globalBeliefs={beliefs}
-            globalDesires={desires}
-            globalIntentions={intentions}
-            setGlobalBeliefs={setBeliefs}
-            setGlobalDesires={setDesires}
-            setGlobalIntentions={setIntentions}
-            setSelectedDependencies={setSelectedDependencies}
-          />
-        )}
-      </Route>
-      <Route path="/bdi">
-        {() => <BDIPage beliefs={beliefs} desires={desires} intentions={intentions} />}
-      </Route>
-      <Route path="/dataset">
-        {() => (
-          <DatasetPage 
-            beliefs={beliefs} 
-            desires={desires} 
-            intentions={intentions} 
-            selectedDependencies={selectedDependencies} 
-          />
-        )}
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+import Landing from "@/pages/Landing";
+import StatisticalAnalysis from "@/pages/StatisticalAnalysis";
+import LandingHeader from "@/components/LandingHeader";
 
 function App() {
   // Global BDI state, to be shared across pages and passed to RLBDIAgent
@@ -65,18 +22,60 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Layout beliefs={beliefs} desires={desires} intentions={intentions} selectedDependencies={selectedDependencies}>
-        <Router 
-          beliefs={beliefs} 
-          desires={desires} 
-          intentions={intentions} 
-          selectedDependencies={selectedDependencies}
-          setBeliefs={setBeliefs}
-          setDesires={setDesires}
-          setIntentions={setIntentions}
-          setSelectedDependencies={setSelectedDependencies}
-        />
-      </Layout>
+      <Switch>
+        <Route path="/landing">
+          {() => (
+            <>
+              <LandingHeader />
+              <Landing />
+            </>
+          )}
+        </Route>
+        <Route path="/statistical-analysis">
+          {() => <StatisticalAnalysis />}
+        </Route>
+        <Route path="/">
+          {() => (
+            <Layout beliefs={beliefs} desires={desires} intentions={intentions} selectedDependencies={selectedDependencies}>
+              <Home 
+                globalBeliefs={beliefs}
+                globalDesires={desires}
+                globalIntentions={intentions}
+                setGlobalBeliefs={setBeliefs}
+                setGlobalDesires={setDesires}
+                setGlobalIntentions={setIntentions}
+                setSelectedDependencies={setSelectedDependencies}
+              />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/bdi">
+          {() => (
+            <Layout beliefs={beliefs} desires={desires} intentions={intentions} selectedDependencies={selectedDependencies}>
+              <BDIPage beliefs={beliefs} desires={desires} intentions={intentions} />
+            </Layout>
+          )}
+        </Route>
+        <Route path="/dataset">
+          {() => (
+            <Layout beliefs={beliefs} desires={desires} intentions={intentions} selectedDependencies={selectedDependencies}>
+              <DatasetPage 
+                beliefs={beliefs} 
+                desires={desires} 
+                intentions={intentions} 
+                selectedDependencies={selectedDependencies} 
+              />
+            </Layout>
+          )}
+        </Route>
+        <Route>
+          {() => (
+            <Layout beliefs={beliefs} desires={desires} intentions={intentions} selectedDependencies={selectedDependencies}>
+              <NotFound />
+            </Layout>
+          )}
+        </Route>
+      </Switch>
       <Toaster />
     </QueryClientProvider>
   );
