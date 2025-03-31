@@ -1,19 +1,21 @@
 import { useState } from "react";
 import TargetFeatureInput from "@/components/TargetFeatureInput";
 import DependenciesPanel from "@/components/DependenciesPanel";
-import BDIStateDisplay from "@/components/BDIStateDisplay";
 import DependencyGraph from "@/components/DependencyGraph";
 import { RLBDIAgent } from "@/lib/RLBDIAgent";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 import { 
   Dependencies, 
   Dependency, 
-  Beliefs, 
-  Desires, 
-  Intentions, 
-  SelectedDependencies 
+  SelectedDependencies,
+  Beliefs,
+  Desires,
+  Intentions
 } from "@/lib/types";
+import { BrainCircuit } from "lucide-react";
 
+// Get the global BDI state from the App component
 export default function Home() {
   const { toast } = useToast();
   const [targetFeature, setTargetFeature] = useState<string>("");
@@ -21,11 +23,13 @@ export default function Home() {
   const [explanations, setExplanations] = useState<Record<string, Record<string, string>>>({});
   const [selectedDependencies, setSelectedDependencies] = useState<SelectedDependencies>({});
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
+  const [shouldShowGraph, setShouldShowGraph] = useState(false);
+  
+  // Local BDI state
   const [beliefs, setBeliefs] = useState<Beliefs>({});
   const [desires, setDesires] = useState<Desires>({});
   const [intentions, setIntentions] = useState<Intentions>({});
-  const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
-  const [shouldShowGraph, setShouldShowGraph] = useState(false);
 
   const agent = new RLBDIAgent(
     beliefs,
@@ -96,7 +100,11 @@ export default function Home() {
 
   const handleConfirmAndExpand = async (feature: string) => {
     try {
-      setExpandedNodes(prev => new Set([...prev, feature]));
+      setExpandedNodes(prev => {
+        const newSet = new Set(prev);
+        newSet.add(feature);
+        return newSet;
+      });
       
       // Update AI Intentions
       agent.updateIntentions(feature, selectedDependencies[feature] || []);
@@ -170,41 +178,55 @@ export default function Home() {
     }, 1000);
   };
 
+  // Check if we have BDI data to show the notification
+  const hasBDIData = Object.keys(beliefs).length > 0 || 
+                    Object.keys(desires).length > 0 || 
+                    Object.keys(intentions).length > 0;
+
   return (
-    <>
-      <TargetFeatureInput 
-        targetFeature={targetFeature}
-        setTargetFeature={setTargetFeature}
-        onGenerateDependencies={handleGenerateDependencies}
-      />
+    <div className="flex flex-col">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Dependency Analysis Dashboard</h1>
+        
+        {hasBDIData && (
+          <Link href="/bdi" className="px-4 py-2 rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors text-sm font-medium flex items-center">
+            <BrainCircuit className="h-4 w-4 mr-2" />
+            View AI Agent State
+          </Link>
+        )}
+      </div>
       
-      {Object.keys(dependencies).length > 0 && (
-        <DependenciesPanel 
-          dependencies={dependencies}
-          explanations={explanations}
-          selectedDependencies={selectedDependencies}
-          expandedNodes={expandedNodes}
-          onSelectDependencies={handleSelectDependencies}
-          onConfirmAndExpand={handleConfirmAndExpand}
-        />
-      )}
-      
-      {Object.keys(beliefs).length > 0 && (
-        <BDIStateDisplay 
-          beliefs={beliefs}
-          desires={desires}
-          intentions={intentions}
-        />
-      )}
-      
-      <DependencyGraph 
-        dependencies={dependencies}
-        selectedDependencies={selectedDependencies}
-        expandedNodes={expandedNodes}
-        isGenerating={isGeneratingGraph}
-        showGraph={shouldShowGraph}
-        onGenerateGraph={handleGenerateGraph}
-      />
-    </>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <TargetFeatureInput 
+            targetFeature={targetFeature}
+            setTargetFeature={setTargetFeature}
+            onGenerateDependencies={handleGenerateDependencies}
+          />
+          
+          {Object.keys(dependencies).length > 0 && (
+            <DependenciesPanel 
+              dependencies={dependencies}
+              explanations={explanations}
+              selectedDependencies={selectedDependencies}
+              expandedNodes={expandedNodes}
+              onSelectDependencies={handleSelectDependencies}
+              onConfirmAndExpand={handleConfirmAndExpand}
+            />
+          )}
+        </div>
+        
+        <div className="lg:col-span-1">
+          <DependencyGraph 
+            dependencies={dependencies}
+            selectedDependencies={selectedDependencies}
+            expandedNodes={expandedNodes}
+            isGenerating={isGeneratingGraph}
+            showGraph={shouldShowGraph}
+            onGenerateGraph={handleGenerateGraph}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
