@@ -280,28 +280,19 @@ export default function OwnDatasetPage() {
         explanations: Record<string, string>;
       }
       
-      // Make a direct fetch request to get dependencies
-      const response = await fetch('/api/dependencies', {
+      const response = await apiRequest({
+        url: '/api/dependencies', // Use the existing API endpoint
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        data: {
           feature,
           context: featureContext
-        })
+        }
       });
       
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data && data.dependencies) {
+      if (response && response.dependencies) {
         setAiDependencies({
           ...aiDependencies,
-          [feature]: data
+          [feature]: response
         });
       } else {
         throw new Error("Invalid AI response format");
