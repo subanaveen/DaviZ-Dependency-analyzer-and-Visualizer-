@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize } from "lucide-react";
 import { Dependencies, SelectedDependencies } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface DependencyGraphProps {
   dependencies: Dependencies;
@@ -181,6 +182,10 @@ export default function DependencyGraph({
   const [viewBox, setViewBox] = useState("0 0 1200 600");
   const [activeNode, setActiveNode] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [nodePositions, setNodePositions] = useState<{[key: string]: {x: number, y: number}}>({});
+  const [draggingNode, setDraggingNode] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<{x: number, y: number}>({x: 0, y: 0});
+  const { toast } = useToast();
 
   // Zoom controls
   const zoomIn = () => {
@@ -196,10 +201,46 @@ export default function DependencyGraph({
     setViewBox("0 0 1200 600");
   };
   
+  // Reset node positions
+  const resetNodePositions = () => {
+    setNodePositions({});
+    toast({
+      title: "Node positions reset",
+      description: "All nodes have been returned to their original positions.",
+      duration: 3000,
+    });
+  };
+  
   // Calculate node positions when dependencies change
-  const { nodes, links } = showGraph 
+  const { nodes, links: originalLinks } = showGraph 
     ? calculateNodePositions(dependencies, selectedDependencies, expandedNodes)
     : { nodes: [], links: [] };
+    
+  // Update links based on custom node positions
+  const links = originalLinks.map(link => {
+    const sourceNode = nodes.find(n => n.id === link.source);
+    const targetNode = nodes.find(n => n.id === link.target);
+    
+    if (!sourceNode || !targetNode) return link;
+    
+    // Get custom positions if they exist
+    const sourceX = nodePositions[link.source]?.x || (sourceNode.x - 90) + 90;
+    const sourceY = nodePositions[link.source]?.y || (sourceNode.y - 20) + 20;
+    const targetX = nodePositions[link.target]?.x || (targetNode.x - 90) + 90;
+    const targetY = nodePositions[link.target]?.y || (targetNode.y - 20) + 20;
+    
+    // Create control points for the curve
+    // This creates a curved path from source to target
+    return {
+      ...link,
+      points: [
+        [sourceX, sourceY],
+        [sourceX + (targetX - sourceX) * 0.4, sourceY + (targetY - sourceY) * 0.1],
+        [sourceX + (targetX - sourceX) * 0.6, sourceY + (targetY - sourceY) * 0.9],
+        [targetX, targetY]
+      ]
+    };
+  });
     
   // Update viewbox when graph changes
   useEffect(() => {
@@ -221,7 +262,16 @@ export default function DependencyGraph({
     const height = Math.max(500, maxY - minY + padding * 2);
     
     setViewBox(`${minX - padding} ${minY - padding} ${width} ${height}`);
-  }, [nodes, showGraph]);
+    
+    // Show toast for first-time graph generation
+    if (nodes.length > 0 && Object.keys(nodePositions).length === 0) {
+      toast({
+        title: "Interactive Graph Ready",
+        description: "Tip: You can click and drag nodes to reposition them in the graph.",
+        duration: 5000,
+      });
+    }
+  }, [nodes, showGraph, nodePositions, toast]);
 
   // Toggle fullscreen effect
   useEffect(() => {
@@ -235,6 +285,47 @@ export default function DependencyGraph({
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen]);
+  
+  // Handle mouse move and mouse up for dragging nodes
+  useEffect(() => {
+    // Skip if no node is being dragged
+    if (!draggingNode) return;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!draggingNode || !svgRef.current) return;
+      
+      // Convert mouse coordinates to SVG coordinates
+      const CTM = svgRef.current.getScreenCTM();
+      if (!CTM) return;
+      
+      const mouseX = (e.clientX - CTM.e) / CTM.a;
+      const mouseY = (e.clientY - CTM.f) / CTM.d;
+      
+      // Update node position based on drag offset
+      setNodePositions(prev => ({
+        ...prev,
+        [draggingNode]: {
+          x: mouseX + dragOffset.x,
+          y: mouseY + dragOffset.y
+        }
+      }));
+    };
+    
+    const handleMouseUp = () => {
+      // End dragging
+      setDraggingNode(null);
+    };
+    
+    // Add event listeners to document
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [draggingNode, dragOffset]);
 
   return (
     <div 
@@ -290,12 +381,35 @@ export default function DependencyGraph({
                 variant="outline"
                 size="icon"
                 className="p-2 rounded-md bg-white text-slate-800 hover:bg-slate-100 transition-colors shadow-sm border border-slate-200"
+                onClick={resetNodePositions}
+                title="Reset Node Positions"
+              >
+                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+                  <path d="M9 9h6v6H9z" />
+                </svg>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="p-2 rounded-md bg-white text-slate-800 hover:bg-slate-100 transition-colors shadow-sm border border-slate-200"
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               >
                 {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
               </Button>
             </div>
+            
+            {/* Help message for draggable nodes */}
+            {showGraph && nodes.length > 0 && (
+              <div className="absolute bottom-4 left-4 bg-blue-50 text-blue-700 px-4 py-2 rounded-md shadow-sm border border-blue-200 text-xs flex items-center z-10">
+                <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4M12 8h.01" />
+                </svg>
+                <span>Tip: Nodes are draggable! Click and drag to reposition nodes in the graph.</span>
+              </div>
+            )}
             
             <div className={`network-graph ${isFullscreen ? 'h-full' : 'h-[600px]'} w-full bg-slate-50 border border-slate-200 rounded-lg overflow-hidden relative`}>
               {/* Node Info Tooltip */}
@@ -425,10 +539,47 @@ export default function DependencyGraph({
                       <g 
                         key={`node-${node.id}`}
                         className="node"
-                        transform={`translate(${node.x - 90}, ${node.y - 20})`}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => setActiveNode(activeNode === node.id ? null : node.id)}
+                        transform={`translate(${nodePositions[node.id]?.x || node.x - 90}, ${nodePositions[node.id]?.y || node.y - 20})`}
+                        style={{ cursor: draggingNode === node.id ? 'grabbing' : 'grab' }}
+                        onClick={(e) => {
+                          // Prevent click when we're finishing a drag operation
+                          if (draggingNode) {
+                            e.stopPropagation();
+                            return;
+                          }
+                          setActiveNode(activeNode === node.id ? null : node.id);
+                        }}
+                        onMouseDown={(e) => {
+                          // Start dragging
+                          if (e.button !== 0) return; // Only left mouse button
+                          
+                          // Get SVG coordinates
+                          const svg = svgRef.current;
+                          if (!svg) return;
+                          
+                          const CTM = svg.getScreenCTM();
+                          if (!CTM) return;
+                          
+                          // Calculate where in the node we clicked
+                          const mouseX = (e.clientX - CTM.e) / CTM.a;
+                          const mouseY = (e.clientY - CTM.f) / CTM.d;
+                          const nodeX = nodePositions[node.id]?.x || node.x - 90;
+                          const nodeY = nodePositions[node.id]?.y || node.y - 20;
+                          
+                          setDragOffset({
+                            x: nodeX - mouseX,
+                            y: nodeY - mouseY
+                          });
+                          
+                          setDraggingNode(node.id);
+                          
+                          // Stop propagation to prevent other handlers
+                          e.stopPropagation();
+                        }}
                         onMouseEnter={(e) => {
+                          // Don't show hover effect while dragging
+                          if (draggingNode) return;
+                          
                           // Add highlight effect on hover
                           const rect = e.currentTarget.querySelector('rect');
                           if (rect) {
@@ -437,6 +588,9 @@ export default function DependencyGraph({
                           }
                         }}
                         onMouseLeave={(e) => {
+                          // Don't remove effect while dragging
+                          if (draggingNode === node.id) return;
+                          
                           // Remove highlight effect
                           const rect = e.currentTarget.querySelector('rect');
                           if (rect) {
