@@ -19,9 +19,7 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
-  FileSpreadsheet,
-  Maximize,
-  Minimize
+  FileSpreadsheet
 } from "lucide-react";
 import { 
   Table, 
@@ -116,7 +114,6 @@ export default function OwnDatasetPage() {
   // Network graph reference
   const networkContainer = useRef<HTMLDivElement>(null);
   const network = useRef<any>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -274,8 +271,8 @@ export default function OwnDatasetPage() {
       // Build context from dataset columns
       const featureContext = dataset.columns.join(', ');
       
-      // Define the response type
-      interface AIResponseData {
+      // Define response interface
+      interface AIResponse {
         dependencies: {
           Primary: string[];
           [key: string]: string[];
@@ -283,31 +280,22 @@ export default function OwnDatasetPage() {
         explanations: Record<string, string>;
       }
       
-      // Make a direct fetch request to ensure we handle the response correctly
-      const response = await fetch('/api/dependencies', {
+      const response = await apiRequest({
+        url: '/api/dependencies', // Use the existing API endpoint
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        data: {
           feature,
           context: featureContext
-        })
+        }
       });
       
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json() as AIResponseData;
-      
-      if (data && data.dependencies && data.explanations) {
+      if (response && response.dependencies) {
         setAiDependencies({
           ...aiDependencies,
-          [feature]: data
+          [feature]: response
         });
       } else {
-        throw new Error("Invalid API response format");
+        throw new Error("Invalid AI response format");
       }
     } catch (error) {
       console.error("Error fetching AI dependencies:", error);
@@ -625,31 +613,9 @@ export default function OwnDatasetPage() {
                 </div>
                 
                 {/* Dependency Graph */}
-                {graphReady && !isFullscreen && (
+                {graphReady && (
                   <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-semibold text-gray-700">Dependency Graph</h2>
-                      <div className="flex gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                onClick={() => setIsFullscreen(true)}
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-2"
-                              >
-                                <Maximize className="h-4 w-4" />
-                                Fullscreen
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>View graph in fullscreen mode</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </div>
+                    <h2 className="text-xl font-semibold text-gray-700 mb-4">Dependency Graph</h2>
                     
                     <div 
                       ref={networkContainer} 
@@ -683,49 +649,6 @@ export default function OwnDatasetPage() {
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Fullscreen Graph */}
-                {graphReady && isFullscreen && (
-                  <div className="fixed inset-0 bg-white z-50 flex flex-col">
-                    <div className="p-4 bg-white border-b flex justify-between items-center">
-                      <h2 className="text-xl font-semibold text-gray-700">Dependency Graph (Fullscreen Mode)</h2>
-                      <Button 
-                        onClick={() => setIsFullscreen(false)}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <Minimize className="h-4 w-4" />
-                        Exit Fullscreen
-                      </Button>
-                    </div>
-                    
-                    <div 
-                      ref={networkContainer} 
-                      className="flex-grow w-full"
-                    ></div>
-                    
-                    <div className="p-4 bg-white border-t flex justify-end gap-2">
-                      <Button 
-                        onClick={() => {
-                          if (network.current) {
-                            const canvas = network.current.canvas.frame.canvas;
-                            const dataURL = canvas.toDataURL("image/png");
-                            const link = document.createElement('a');
-                            link.href = dataURL;
-                            link.download = 'dependency_graph.png';
-                            link.click();
-                          }
-                        }}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download Graph
-                      </Button>
                     </div>
                   </div>
                 )}
