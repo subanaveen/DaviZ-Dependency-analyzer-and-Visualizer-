@@ -40,7 +40,7 @@ export default function Landing() {
           </Card>
         </Link>
 
-        <Link href="/">
+        <Link href="/dependency-analyzer">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-300 h-full">
             <CardContent className="flex flex-col items-center justify-center p-6 h-full">
               <GitGraph className="h-10 w-10 text-purple-500 mb-4" />

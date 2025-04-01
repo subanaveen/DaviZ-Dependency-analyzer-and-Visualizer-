@@ -24,7 +24,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Switch>
-        <Route path="/landing">
+        <Route path="/">
           {() => (
             <>
               <LandingHeader />
@@ -35,7 +35,7 @@ function App() {
         <Route path="/statistical-analysis">
           {() => <StatisticalAnalysis />}
         </Route>
-        <Route path="/">
+        <Route path="/dependency-analyzer">
           {() => (
             <Layout beliefs={beliefs} desires={desires} intentions={intentions} selectedDependencies={selectedDependencies}>
               <Home 
