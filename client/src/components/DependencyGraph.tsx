@@ -34,13 +34,17 @@ function calculateNodePositions(
     y: 300,
   });
 
-  // Function to add nodes and links recursively
+  // Track the nodes by level for better positioning
+  const nodesByLevel: Record<number, { id: string; y: number }[]> = {
+    0: [{ id: rootFeature, y: 300 }]
+  };
+
+  // Function to add nodes and links recursively with improved positioning
   function addNodesAndLinks(
     feature: string,
     level: number,
     parentX: number,
     parentY: number,
-    verticalSpacing: number,
     horizontalOffset: number
   ) {
     if (!selectedDependencies[feature] || selectedDependencies[feature].length === 0) return;
@@ -48,15 +52,38 @@ function calculateNodePositions(
     const deps = selectedDependencies[feature];
     const isExpanded = expandedNodes.has(feature);
     
-    // Calculate the starting Y position for children
-    const totalHeight = deps.length * verticalSpacing;
-    let startY = parentY - totalHeight / 2 + verticalSpacing / 2;
+    // Initialize this level's tracking if not exists
+    if (!nodesByLevel[level + 1]) {
+      nodesByLevel[level + 1] = [];
+    }
     
     // If the node is expanded and there are deps, render them
     if (isExpanded) {
+      // Calculate optimal vertical spacing based on number of dependencies
+      const levelNodesCount = deps.length;
+      const verticalSpacing = Math.max(100, Math.min(200, 800 / levelNodesCount));
+      
+      // Calculate total height needed and starting position
+      const totalHeight = deps.length * verticalSpacing;
+      let startY = parentY - totalHeight / 2 + verticalSpacing / 2;
+      
       deps.forEach((dep, index) => {
         const childX = parentX + horizontalOffset;
-        const childY = startY + index * verticalSpacing;
+        let childY = startY + index * verticalSpacing;
+        
+        // Check for overlaps with existing nodes at this level
+        let hasOverlap = true;
+        let attempts = 0;
+        const existingYPositions = nodesByLevel[level + 1].map(n => n.y);
+        
+        while (hasOverlap && attempts < 5) {
+          hasOverlap = existingYPositions.some(y => Math.abs(y - childY) < verticalSpacing * 0.8);
+          if (hasOverlap) {
+            // Adjust position to avoid overlap
+            childY += verticalSpacing * 0.5 * (attempts % 2 === 0 ? 1 : -1) * (Math.floor(attempts/2) + 1);
+            attempts++;
+          }
+        }
         
         // Add the child node
         nodes.push({
@@ -66,6 +93,9 @@ function calculateNodePositions(
           y: childY,
           parent: feature,
         });
+        
+        // Track the node position at this level
+        nodesByLevel[level + 1].push({ id: dep, y: childY });
         
         // Add the link between parent and child
         links.push({
@@ -81,7 +111,7 @@ function calculateNodePositions(
         
         // Recursively add child nodes
         if (expandedNodes.has(dep) && selectedDependencies[dep]) {
-          addNodesAndLinks(dep, level + 1, childX, childY, verticalSpacing * 0.8, horizontalOffset);
+          addNodesAndLinks(dep, level + 1, childX, childY, horizontalOffset);
         }
       });
     }
@@ -90,12 +120,18 @@ function calculateNodePositions(
   // Always show first level nodes and their children if they're expanded
   if (selectedDependencies[rootFeature] && selectedDependencies[rootFeature].length > 0) {
     const deps = selectedDependencies[rootFeature];
-    const totalHeight = deps.length * 80;
-    let startY = 300 - totalHeight / 2 + 80 / 2;
+    
+    // Calculate optimal spacing based on the number of dependencies
+    const verticalSpacing = Math.max(100, Math.min(200, 800 / deps.length));
+    const totalHeight = deps.length * verticalSpacing;
+    let startY = 300 - totalHeight / 2 + verticalSpacing / 2;
+    
+    // Initialize level 1 tracking
+    nodesByLevel[1] = [];
     
     deps.forEach((dep, index) => {
-      const childX = 200 + 250;
-      const childY = startY + index * 80;
+      const childX = 200 + 300; // Increased horizontal spacing for better readability
+      const childY = startY + index * verticalSpacing;
       
       // Add the child node
       nodes.push({
@@ -106,21 +142,24 @@ function calculateNodePositions(
         parent: rootFeature,
       });
       
+      // Track the node position
+      nodesByLevel[1].push({ id: dep, y: childY });
+      
       // Add the link between parent and child
       links.push({
         source: rootFeature,
         target: dep,
         points: [
           [200, 300],
-          [200 + 250 * 0.4, 300],
-          [200 + 250 * 0.6, childY],
+          [200 + 300 * 0.4, 300],
+          [200 + 300 * 0.6, childY],
           [childX, childY],
         ],
       });
       
       // If this node is expanded, add its children recursively
       if (expandedNodes.has(dep) && selectedDependencies[dep]) {
-        addNodesAndLinks(dep, 1, childX, childY, 80 * 0.8, 250);
+        addNodesAndLinks(dep, 1, childX, childY, 300);
       }
     });
   }
@@ -305,7 +344,21 @@ export default function DependencyGraph({
                     transition: 'transform 0.3s ease' 
                   }}
                 >
-                  {/* Render links first (so they're behind nodes) */}
+                  {/* Define arrow marker for directed edges */}
+                  <defs>
+                    <marker
+                      id="arrowhead"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="10"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon points="0 0, 10 3.5, 0 7" className="fill-blue-500" />
+                    </marker>
+                  </defs>
+                  
+                  {/* Render links with arrowheads for directed edges */}
                   {links.map((link, index) => (
                     <path
                       key={`link-${link.source}-${link.target}-${index}`}
@@ -314,6 +367,7 @@ export default function DependencyGraph({
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      markerEnd="url(#arrowhead)"
                     />
                   ))}
                   
@@ -322,7 +376,7 @@ export default function DependencyGraph({
                     const isRoot = node.level === 0;
                     const isExpanded = expandedNodes.has(node.id);
                     
-                    // Different styles based on node type
+                    // Different styles based on hierarchy level
                     let nodeClass, textClass, shadowOpacity;
                     
                     if (activeNode === node.id) {
@@ -330,18 +384,41 @@ export default function DependencyGraph({
                       nodeClass = "fill-purple-200 stroke-purple-600";
                       textClass = "font-bold fill-purple-900";
                       shadowOpacity = 0.5;
-                    } else if (isRoot) {
-                      nodeClass = "fill-blue-300 stroke-blue-600";
-                      textClass = "font-semibold fill-slate-800";
-                      shadowOpacity = 0.4;
-                    } else if (isExpanded) {
-                      nodeClass = "fill-green-200 stroke-green-600";
-                      textClass = "font-medium fill-slate-800";
-                      shadowOpacity = 0.35;
                     } else {
-                      nodeClass = "fill-blue-200 stroke-blue-600";
-                      textClass = "font-medium fill-slate-800";
-                      shadowOpacity = 0.3;
+                      // Color coding based on level in the hierarchy
+                      switch (node.level) {
+                        case 0: // Root node
+                          nodeClass = "fill-blue-300 stroke-blue-600";
+                          textClass = "font-semibold fill-slate-800";
+                          shadowOpacity = 0.4;
+                          break;
+                        case 1: // Level 1 nodes
+                          nodeClass = "fill-green-200 stroke-green-600";
+                          textClass = "font-medium fill-slate-800";
+                          shadowOpacity = 0.35;
+                          break;
+                        case 2: // Level 2 nodes
+                          nodeClass = "fill-orange-200 stroke-orange-600";
+                          textClass = "font-medium fill-slate-800";
+                          shadowOpacity = 0.35;
+                          break;
+                        case 3: // Level 3 nodes
+                          nodeClass = "fill-red-200 stroke-red-600";
+                          textClass = "font-medium fill-slate-800";
+                          shadowOpacity = 0.3;
+                          break;
+                        default: // Level 4+ nodes
+                          nodeClass = "fill-purple-200 stroke-purple-600";
+                          textClass = "font-medium fill-slate-800";
+                          shadowOpacity = 0.3;
+                          break;
+                      }
+                      
+                      // Add highlight for expanded nodes
+                      if (isExpanded && node.level > 0) {
+                        nodeClass = nodeClass.replace("fill-", "fill-").replace("stroke-", "stroke-");
+                        nodeClass += " ring-2 ring-blue-400 ring-opacity-50";
+                      }
                     }
                     
                     return (
@@ -426,6 +503,41 @@ export default function DependencyGraph({
                       </g>
                     );
                   })}
+                  
+                  {/* Add legend for color coding */}
+                  {nodes.length > 0 && (
+                    <g transform={`translate(50, ${Math.max(...nodes.map(n => n.y)) + 100})`}>
+                      <rect width="500" height="90" fill="white" fillOpacity="0.9" stroke="#e2e8f0" rx="5" ry="5" />
+                      <text x="250" y="25" textAnchor="middle" className="font-semibold fill-slate-700">Dependency Level Legend</text>
+                      
+                      {/* Legend items */}
+                      <g transform="translate(30, 40)">
+                        {/* Level 0 */}
+                        <rect width="20" height="20" fill="#93c5fd" stroke="#2563eb" rx="2" ry="2" />
+                        <text x="30" y="15" className="text-xs fill-slate-700">Root Node (Level 0)</text>
+                        
+                        {/* Level 1 */}
+                        <rect width="20" height="20" x="180" y="0" fill="#bbf7d0" stroke="#16a34a" rx="2" ry="2" />
+                        <text x="210" y="15" className="text-xs fill-slate-700">Level 1</text>
+                        
+                        {/* Level 2 */}
+                        <rect width="20" height="20" x="280" y="0" fill="#fed7aa" stroke="#ea580c" rx="2" ry="2" />
+                        <text x="310" y="15" className="text-xs fill-slate-700">Level 2</text>
+                        
+                        {/* Level 3 */}
+                        <rect width="20" height="20" x="380" y="0" fill="#fecaca" stroke="#dc2626" rx="2" ry="2" />
+                        <text x="410" y="15" className="text-xs fill-slate-700">Level 3</text>
+                        
+                        {/* Arrow direction */}
+                        <path d="M30,40 L80,40" className="stroke-blue-500" strokeWidth="1.5" markerEnd="url(#arrowhead)" />
+                        <text x="120" y="45" className="text-xs fill-slate-700">Direction of dependency</text>
+                        
+                        {/* Selected node */}
+                        <rect width="20" height="20" x="280" y="30" fill="#e9d5ff" stroke="#9333ea" rx="2" ry="2" />
+                        <text x="310" y="45" className="text-xs fill-slate-700">Selected/Level 4+ Node</text>
+                      </g>
+                    </g>
+                  )}
                 </svg>
               ) : (
                 <div className="flex items-center justify-center h-full">
