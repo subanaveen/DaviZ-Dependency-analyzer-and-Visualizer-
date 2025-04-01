@@ -271,8 +271,8 @@ export default function OwnDatasetPage() {
       // Build context from dataset columns
       const featureContext = dataset.columns.join(', ');
       
-      // Define the response type
-      interface AIResponseData {
+      // Define response interface
+      interface AIResponse {
         dependencies: {
           Primary: string[];
           [key: string]: string[];
@@ -280,31 +280,22 @@ export default function OwnDatasetPage() {
         explanations: Record<string, string>;
       }
       
-      // Make a direct fetch request to ensure we handle the response correctly
-      const response = await fetch('/api/dependencies', {
+      const response = await apiRequest({
+        url: '/api/dependencies', // Use the existing API endpoint
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        data: {
           feature,
           context: featureContext
-        })
+        }
       });
       
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json() as AIResponseData;
-      
-      if (data && data.dependencies && data.explanations) {
+      if (response && response.dependencies) {
         setAiDependencies({
           ...aiDependencies,
-          [feature]: data
+          [feature]: response
         });
       } else {
-        throw new Error("Invalid API response format");
+        throw new Error("Invalid AI response format");
       }
     } catch (error) {
       console.error("Error fetching AI dependencies:", error);
