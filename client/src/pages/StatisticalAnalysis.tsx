@@ -286,7 +286,7 @@ export default function StatisticalAnalysis() {
       
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-black to-black bg-clip-text text-transparent">
             Excel Statistical Analysis
           </CardTitle>
         </CardHeader>
@@ -506,9 +506,8 @@ export default function StatisticalAnalysis() {
       
       <Separator className="my-6" />
       
-      <footer className="text-center text-muted-foreground mb-8">
-        <p>© 2025 All rights reserved.</p>
-        <p>Developed by Himistu Lab.</p>
+      <footer className=" absolute inset-x-0 bottom-0  text-center text-muted-foreground mb-8">
+        <p>© 2025 All rights reserved by Himistu Lab.</p>
       </footer>
     </div>
   );

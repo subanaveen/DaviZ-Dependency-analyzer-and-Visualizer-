@@ -113,19 +113,7 @@ export default function Layout({
               </Link>
             </nav>
 
-            <div className="flex items-center space-x-2">
-              <Sun
-                className={`h-4 w-4 ${isDarkMode ? "text-slate-400" : "text-amber-500"}`}
-              />
-              <Switch
-                checked={isDarkMode}
-                onCheckedChange={toggleMode}
-                className="data-[state=checked]:bg-slate-700"
-              />
-              <Moon
-                className={`h-4 w-4 ${isDarkMode ? "text-blue-400" : "text-slate-400"}`}
-              />
-            </div>
+            
           </div>
         </div>
       </header>
@@ -136,35 +124,9 @@ export default function Layout({
         {children}
       </main>
 
-      <footer
-        className={`border-t py-6 ${isDarkMode ? "border-slate-700 bg-slate-800" : "border-slate-200 bg-white"}`}
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p
-              className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
-            >
-              AI-Powered Dynamic Dependency Analyzer - Built with Next.js and
-              Shadcn UI
-            </p>
-            <div className="mt-4 md:mt-0 flex items-center space-x-4">
-              <span
-                className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
-              >
-                Powered by Gemini API
-              </span>
-              <div className="flex items-center">
-                <Link
-                  href="/bdi"
-                  className={`flex items-center text-sm font-medium ${isDarkMode ? "text-blue-400" : "text-blue-600"}`}
-                >
-                  <BrainCircuit className="h-4 w-4 mr-1" />
-                  View AI State
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+      <footer className="text-center text-muted-foreground ">
+        <p>© 2025 All rights reserved by Himistu Lab</p>
+       
       </footer>
     </div>
   );

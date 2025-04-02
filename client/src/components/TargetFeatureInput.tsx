@@ -53,7 +53,7 @@ export default function TargetFeatureInput({
           <div className="flex items-end">
             <Button 
               type="submit" 
-              className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
+              className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-500 transition-colors font-medium"
               disabled={isLoading || !targetFeature.trim()}
             >
               {isLoading ? "Generating..." : "Generate Dependencies"}

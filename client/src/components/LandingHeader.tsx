@@ -1,15 +1,18 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { InfinityIcon } from "lucide-react";
+
+import myImage from "@/pages/logo_main.svg"; // Update with your image path
+
+
 
 export default function LandingHeader() {
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <Link href="/landing">
-            <InfinityIcon className="h-8 w-8 text-gradient-to-r from-purple-500 via-pink-400 to-blue-500 cursor-pointer" />
-          </Link>
+          
+         <img src={myImage} style={{ position: "absolute", top: 8, left:52  }}/> 
+         <h1 className="text-3xl font-bold cursor-pointer text-black "></h1>
         </div>
         
         <div className="flex items-center space-x-2">

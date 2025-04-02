@@ -507,8 +507,8 @@ export default function OwnDatasetPage() {
 
   // Component content
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen">
-      <div className="mb-6 flex items-center">
+    <div>
+      <div>
         <Link href="/">
           <Button variant="ghost" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
@@ -519,7 +519,7 @@ export default function OwnDatasetPage() {
       
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+          <CardTitle>
             AI-Powered Dependency Analyzer (Dataset Mode)
           </CardTitle>
         </CardHeader>
@@ -669,7 +669,8 @@ export default function OwnDatasetPage() {
                     
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label className="mb-2 block">Select Feature to Expand</Label>
+                        <Label className="text-lg font-medium mb-2">Select Feature to Expand:
+                        </Label>
                         <Select
                           value={selectedFeature}
                           onValueChange={(value) => {
@@ -705,38 +706,38 @@ export default function OwnDatasetPage() {
                         </h3>
                         
                         <ScrollArea className="h-[300px] rounded-md border p-4">
-                          {aiDependencies[selectedFeature].dependencies.Primary.map((dep: string) => {
-                            const explanation = aiDependencies[selectedFeature].explanations[dep];
-                            return (
-                              <div key={dep} className="mb-4 pb-4 border-b border-gray-100 last:border-0">
-                                <div className="flex items-start gap-2">
-                                  <Checkbox 
-                                    id={`dep-${dep}`}
-                                    checked={selectedAIDependencies.includes(dep)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setSelectedAIDependencies([...selectedAIDependencies, dep]);
-                                      } else {
-                                        setSelectedAIDependencies(
-                                          selectedAIDependencies.filter(d => d !== dep)
-                                        );
-                                      }
-                                    }} 
-                                  />
-                                  <div>
-                                    <Label 
-                                      htmlFor={`dep-${dep}`}
-                                      className="font-medium"
-                                    >
-                                      {dep}
-                                    </Label>
-                                    <p className="text-sm text-muted-foreground mt-1">{explanation}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </ScrollArea>
+  {aiDependencies[selectedFeature].dependencies.Primary.map((dep: string) => {
+    const explanation = aiDependencies[selectedFeature].explanations[dep];
+    return (
+      <div
+        key={dep}
+        className="mb-4 pb-4 border-b border-gray-100 last:border-0 flex items-start gap-2"
+      >
+        <Checkbox
+          id={`dep-${dep}`}
+          checked={selectedAIDependencies.includes(dep)}
+          onCheckedChange={(checked) => {
+            if (checked) {
+              setSelectedAIDependencies([...selectedAIDependencies, dep]);
+            } else {
+              setSelectedAIDependencies(
+                selectedAIDependencies.filter((d) => d !== dep)
+              );
+            }
+          }}
+          className="mt"
+        />
+        <div className="flex flex-col">
+          <Label htmlFor={`dep-${dep}`} className="font-bold leading-tight">
+            {dep}
+          </Label>
+          <p className="text-sm text-muted-foreground mt-1">{explanation}</p>
+        </div>
+      </div>
+    );
+  })}
+</ScrollArea>
+
                         
                         <div className="mt-4">
                           <Button
@@ -770,8 +771,8 @@ export default function OwnDatasetPage() {
                         ))}
                       </div>
                       
-                      <Alert className="mb-4 bg-blue-50 border-blue-200">
-                        <AlertDescription className="text-blue-700">
+                      <Alert className="mb-4 bg-gray-100 border-gray-950">
+                        <AlertDescription className="text-black-700">
                           The expanded dataset will include the original columns plus any new features 
                           you've added via the dependency analysis.
                         </AlertDescription>
@@ -795,9 +796,9 @@ export default function OwnDatasetPage() {
       
       <Separator className="my-6" />
       
-      <footer className="text-center text-muted-foreground mb-8">
-        <p>© 2025 All rights reserved.</p>
-        <p>Developed by Himistu Lab.</p>
+      <footer className="absolute inset-x-0 bottom-0 text-center text-muted-foreground mb-8">
+        <p>© 2025 All rights reserved by Himistu Lab</p>
+       
       </footer>
     </div>
   );

@@ -335,11 +335,11 @@ export default function DependencyGraph({
       <Card className={`rounded-lg border border-slate-200 bg-white shadow-sm ${isFullscreen ? 'w-full h-[calc(100vh-32px)]' : 'mb-8'}`}>
         <CardContent className="pt-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-slate-900 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            <h2 className="text-xl font-semibold text-slate-900 text-black hover:bg-gray-100 bg-clip-text ">
               Dependency Graph Visualization
             </h2>
             <Button
-              className="px-4 py-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 transition-colors font-medium text-sm flex items-center gap-2 shadow-md"
+              className="px-4 py-2 rounded-md bg-white text-black hover:bg-gray-100 transition-colors font-medium text-sm flex items-center gap-2 shadow-md border border-gray-300"
               onClick={onGenerateGraph}
               disabled={isGenerating || Object.keys(dependencies).length === 0}
             >

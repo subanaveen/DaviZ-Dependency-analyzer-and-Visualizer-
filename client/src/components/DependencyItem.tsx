@@ -123,11 +123,11 @@ export default function DependencyItem({
       
       <div className="mt-6">
         <Button
-          className="px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors font-medium"
+          className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-500 transition-colors font-medium"
           onClick={handleConfirmAndExpand}
           disabled={isLoading || selectedDependencies.length === 0}
         >
-          {isLoading ? "Processing..." : `✅ Confirm & Expand ${feature}`}
+          {isLoading ? "Processing..." : `Confirm & Expand ${feature}`}
         </Button>
       </div>
     </div>
