@@ -2,6 +2,7 @@ import React, { ReactNode, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import myImage from "@/pages/himitsu8-logo-stacked.svg"; // Update with your image path
 import {
   Beliefs,
   Desires,
@@ -56,11 +57,11 @@ export default function Layout({
             <Link href="/landing">
               <span className="text-2xl font-bold text-blue-600 cursor-pointer"></span>
             </Link>
-            <h1
-              className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-slate-900"}`}
-            >
-              AI-Powered Dynamic Dependency Analyzer
-            </h1>
+            <img
+      src={myImage}
+      alt="Himitsu Lab Logo"
+      className="absolute top-2 left-3 w-15 h-10 md:w-14 md:h-14" // Responsive size
+    />
           </div>
 
           <div className="flex items-center space-x-4">

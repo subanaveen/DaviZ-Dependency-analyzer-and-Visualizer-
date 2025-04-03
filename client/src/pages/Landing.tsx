@@ -6,7 +6,7 @@ export default function Landing() {
   return (
     <div className="container mx-auto py-20 px-4 flex flex-col items-center">
       <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold mb-4">Welcome to DaViz</h1>
+        <h1 className="text-4xl font-bold mb-4 mt-24">Welcome to DaViz</h1>
         <h2 className="text-2xl font-semibold mb-4"> AI-Powered Dynamic Dependency Analyzer</h2>
         <p className="text-xl text-muted-foreground">
           Explore our Himistu AI projects and innovations
@@ -48,10 +48,28 @@ export default function Landing() {
           </Card>
         </Link>
       </div>
-
-      <footer className=" mb-28 text-center text-muted-foreground">
-        <p>© 2025 All rights reserved by Himistu Lab..</p>
-       </footer>
-    </div>
+      <footer style={{
+  position: 'fixed',
+  bottom: 0,
+  left: 0,
+  width: '100%',
+  backgroundColor: 'WHITE', // gray-900
+  color: 'BLACK',
+  textAlign: 'center',
+  padding: '1rem',
+}}>
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    alignItems: 'center',
+  }}>
+    <p style={{ fontSize: '0.875rem' }}>
+      © 2025 All rights reserved by Himistu Lab
+    </p>
+    {/* Add similar inline styles for the social links and button */}
+  </div>
+</footer>
+</div>
   );
 }

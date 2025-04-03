@@ -339,7 +339,7 @@ export default function DependencyGraph({
               Dependency Graph Visualization
             </h2>
             <Button
-              className="px-4 py-2 rounded-md bg-white text-black hover:bg-gray-100 transition-colors font-medium text-sm flex items-center gap-2 shadow-md border border-gray-300"
+              className="px-4 py-2 rounded-md bg-white text-black hover:bg-black-100 transition-colors font-medium text-sm flex items-center gap-2 shadow-md border border-gray-300"
               onClick={onGenerateGraph}
               disabled={isGenerating || Object.keys(dependencies).length === 0}
             >

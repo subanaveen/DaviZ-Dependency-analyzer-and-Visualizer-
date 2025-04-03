@@ -39,6 +39,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiRequest } from "@/lib/queryClient";
 import Papa from "papaparse";
 import { Network, Node, Edge, Options, Data } from "vis-network";
+import myImage from "@/pages/himitsu8-logo-stacked.svg"; // Update with your image path
 
 interface Dataset {
   data: any[];
@@ -508,16 +509,29 @@ export default function OwnDatasetPage() {
   // Component content
   return (
     <div>
-      <div>
-        <Link href="/">
-          <Button variant="ghost" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Projects
+       <header>
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <img
+            src={myImage}
+            alt="Himitsu Lab Logo"
+            className="absolute top-3 left-4 w-15 h-10 md:w-14 md:h-14" // Responsive size
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" className="px-6">
+            Share
           </Button>
-        </Link>
+          <Link href="/">
+            <Button className="bg-black hover:bg-gray-800 text-white px-6">
+              Home
+            </Button>
+          </Link>
+        </div>
       </div>
-      
-      <Card className="mb-8">
+    </header>
+          <Card className="mb-48">
         <CardHeader>
           <CardTitle>
             AI-Powered Dependency Analyzer (Dataset Mode)
@@ -796,10 +810,28 @@ export default function OwnDatasetPage() {
       
       <Separator className="my-6" />
       
-      <footer className="absolute inset-x-0 bottom-0 text-center text-muted-foreground mb-8">
-        <p>© 2025 All rights reserved by Himistu Lab</p>
-       
-      </footer>
+      <footer style={{
+  position: 'fixed',
+  bottom: 0,
+  left: 0,
+  width: '100%',
+  backgroundColor: 'WHITE', // gray-900
+  color: 'BLACK',
+  textAlign: 'center',
+  padding: '1rem',
+}}>
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    alignItems: 'center',
+  }}>
+    <p style={{ fontSize: '0.875rem' }}>
+      © 2025 All rights reserved by Himistu Lab
+    </p>
+    {/* Add similar inline styles for the social links and button */}
+  </div>
+</footer>
     </div>
   );
 }

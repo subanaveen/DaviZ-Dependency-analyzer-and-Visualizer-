@@ -1,18 +1,17 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-
-import myImage from "@/pages/logo_main.svg"; // Update with your image path
-
-
+import myImage from "@/pages/himitsu8-logo-stacked.svg"; // Update with your image path
 
 export default function LandingHeader() {
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="fixed top-0 left-0 w-full z-50 border-b border-slate-200 bg-white">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          
-         <img src={myImage} style={{ position: "absolute", top: 8, left:52  }}/> 
-         <h1 className="text-3xl font-bold cursor-pointer text-black "></h1>
+          <img
+            src={myImage}
+            alt="Himitsu Lab Logo"
+            className="absolute top-3 left-4 w-15 h-10 md:w-14 md:h-14" // Responsive size
+          />
         </div>
         
         <div className="flex items-center space-x-2">

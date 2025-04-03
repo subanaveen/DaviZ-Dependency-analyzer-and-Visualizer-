@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
+import myImage from "@/pages/himitsu8-logo-stacked.svg"; // Update with your image path
 // Type definitions
 interface DataColumn {
   name: string;
@@ -274,16 +274,29 @@ export default function StatisticalAnalysis() {
   const categoricalColumns = dataset?.columns.filter(col => col.type === 'categorical').map(col => col.name) || [];
 
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen bg-slate-50">
-      <div className="mb-6 flex items-center">
-        <Link href="/">
-          <Button variant="ghost" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Projects
+    <div>
+        <header className="fixed top-0 left-0 w-full z-50 border-b border-slate-200 bg-white">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <img
+            src={myImage}
+            alt="Himitsu Lab Logo"
+            className="absolute top-3 left-4 w-15 h-10 md:w-14 md:h-14" // Responsive size
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" className="px-6">
+            Share
           </Button>
-        </Link>
+          <Link href="/">
+            <Button className="bg-black hover:bg-gray-800 text-white px-6">
+              Home
+            </Button>
+          </Link>
+        </div>
       </div>
-      
+    </header>
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-black to-black bg-clip-text text-transparent">
